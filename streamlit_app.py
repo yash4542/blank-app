@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import random
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Configure Streamlit page
 st.set_page_config(page_title="Customer Behavior Tracking", layout="wide")
@@ -32,8 +32,8 @@ def get_sensor_data():
     return data
 
 # Initialize an empty DataFrame for live data
-sensor_data = pd.DataFrame(columns=[
-    "timestamp", "gyroscope_x", "gyroscope_y", "gyroscope_z",
+sensor_data = pd.DataFrame(columns=[ 
+    "timestamp", "gyroscope_x", "gyroscope_y", "gyroscope_z", 
     "rfid_detected", "camera_motion", "position_x", "position_y"
 ])
 
@@ -51,7 +51,7 @@ if st.sidebar.button("Start Live Updates"):
             # Append to the DataFrame (in place)
             sensor_data.loc[len(sensor_data)] = new_data
             # Limit DataFrame to the last 100 rows for performance
-            sensor_data = sensor_data.tail(10)
+            sensor_data = sensor_data.tail(100)
             
             # Display live data in the placeholder
             placeholder.dataframe(sensor_data)
@@ -59,23 +59,30 @@ if st.sidebar.button("Start Live Updates"):
             # Update live charts in a container
             with live_chart_placeholder.container():
                 st.markdown("### Sensor Readings Over Time")
-                fig, axs = plt.subplots(3, 1, figsize=(10, 12), sharex=True)
                 
+                # Convert the timestamp to the 'days' format
+                sensor_data["timestamp"] = pd.to_datetime(sensor_data["timestamp"])
+                time_range = sensor_data["timestamp"].max() - timedelta(days=1)  # Get data for the last day
+                filtered_data = sensor_data[sensor_data["timestamp"] > time_range]
+                
+                # Create the plots
+                fig, axs = plt.subplots(3, 1, figsize=(10, 12), sharex=True)
+
                 # Plot gyroscope data
-                axs[0].plot(sensor_data["timestamp"], sensor_data["gyroscope_x"], label="Gyroscope X", color="blue")
-                axs[0].plot(sensor_data["timestamp"], sensor_data["gyroscope_y"], label="Gyroscope Y", color="orange")
-                axs[0].plot(sensor_data["timestamp"], sensor_data["gyroscope_z"], label="Gyroscope Z", color="green")
+                axs[0].plot(filtered_data["timestamp"], filtered_data["gyroscope_x"], label="Gyroscope X", color="blue")
+                axs[0].plot(filtered_data["timestamp"], filtered_data["gyroscope_y"], label="Gyroscope Y", color="orange")
+                axs[0].plot(filtered_data["timestamp"], filtered_data["gyroscope_z"], label="Gyroscope Z", color="green")
                 axs[0].set_ylabel("Gyroscope (degrees)")
                 axs[0].legend()
 
                 # Plot RFID and Camera motion data
-                axs[1].step(sensor_data["timestamp"], sensor_data["rfid_detected"], label="RFID Detected", color="purple", where="mid")
-                axs[1].step(sensor_data["timestamp"], sensor_data["camera_motion"], label="Camera Motion", color="red", where="mid")
+                axs[1].step(filtered_data["timestamp"], filtered_data["rfid_detected"], label="RFID Detected", color="purple", where="mid")
+                axs[1].step(filtered_data["timestamp"], filtered_data["camera_motion"], label="Camera Motion", color="red", where="mid")
                 axs[1].set_ylabel("Binary Detection")
                 axs[1].legend()
 
                 # Plot indoor positioning data
-                axs[2].scatter(sensor_data["position_x"], sensor_data["position_y"], c="cyan", label="Position (X,Y)", alpha=0.6)
+                axs[2].scatter(filtered_data["position_x"], filtered_data["position_y"], c="cyan", label="Position (X,Y)", alpha=0.6)
                 axs[2].set_xlabel("Timestamp")
                 axs[2].set_ylabel("Position (X, Y)")
                 axs[2].legend()
