@@ -88,3 +88,4 @@ if st.sidebar.button("Start Live Updates"):
     except KeyboardInterrupt:
         st.write("Live data updates stopped.")
 else:
+    st.write("Click 'Start Live Updates' to begin streaming sensor data.")
