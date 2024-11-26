@@ -1,3 +1,4 @@
+
 import random
 import math
 import pandas as pd
@@ -182,6 +183,12 @@ if st.sidebar.button("Run Simulation"):
     st.subheader("Simulated Data")
     st.dataframe(data)
 
-    perform_eda(data)  # Perform EDA on simulated data
+    # Perform EDA on simulated data
+    st.write("### Performing Exploratory Data Analysis (EDA)...")
+
+    # Create a placeholder for the graph to update in place
+    with st.empty():
+        perform_eda(data)  # Perform EDA on simulated data
+
 else:
     st.write("Set simulation parameters in the sidebar and click 'Run Simulation' to begin.")
