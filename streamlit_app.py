@@ -74,18 +74,21 @@ if st.sidebar.button("Start Live Updates"):
                 axs[0].plot(filtered_data["timestamp"], filtered_data["gyroscope_z"], label="Gyroscope Z", color="green")
                 axs[0].set_ylabel("Gyroscope (degrees)")
                 axs[0].legend()
+                axs[0].tick_params(axis='x', rotation=45)  # Rotate x-axis labels to avoid overlap
 
                 # Plot RFID and Camera motion data
                 axs[1].step(filtered_data["timestamp"], filtered_data["rfid_detected"], label="RFID Detected", color="purple", where="mid")
                 axs[1].step(filtered_data["timestamp"], filtered_data["camera_motion"], label="Camera Motion", color="red", where="mid")
                 axs[1].set_ylabel("Binary Detection")
                 axs[1].legend()
+                axs[1].tick_params(axis='x', rotation=45)  # Rotate x-axis labels to avoid overlap
 
                 # Plot indoor positioning data
                 axs[2].scatter(filtered_data["position_x"], filtered_data["position_y"], c="cyan", label="Position (X,Y)", alpha=0.6)
                 axs[2].set_xlabel("Timestamp")
                 axs[2].set_ylabel("Position (X, Y)")
                 axs[2].legend()
+                axs[2].tick_params(axis='x', rotation=45)  # Rotate x-axis labels to avoid overlap
 
                 st.pyplot(fig)
 
