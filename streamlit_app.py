@@ -9,7 +9,7 @@ import math
 import numpy as np
 
 # Import your simulation functions and classes
-from simulation_code import simulate_data  # Replace with actual filename
+# Removed the import for simulation_code as it is now embedded in this script
 
 # Configure Streamlit page
 st.set_page_config(page_title="Sensor Simulation", layout="wide")
@@ -20,6 +20,27 @@ st.title("Sensor Simulation and Analysis")
 # Sidebar for simulation input
 st.sidebar.header("Simulation Settings")
 steps = st.sidebar.number_input("Number of Simulation Steps:", min_value=1, max_value=1000, value=100, step=10)
+
+# Function to simulate sensor data
+def simulate_data(steps):
+    # Create a timestamp column that starts from the current time and increments by 1 minute
+    start_time = datetime.now()
+    timestamps = [start_time + timedelta(minutes=i) for i in range(steps)]
+    
+    # Simulate sensor data (random data for the example)
+    rotation = [random.uniform(0, 360) for _ in range(steps)]  # Rotation in degrees
+    foot_traffic = [random.randint(0, 100) for _ in range(steps)]  # Foot traffic count
+    movement_detected = [random.choice([0, 1]) for _ in range(steps)]  # 0 = no movement, 1 = movement detected
+    
+    # Create a DataFrame
+    data = pd.DataFrame({
+        "timestamp": timestamps,
+        "rotation": rotation,
+        "foot_traffic": foot_traffic,
+        "movement_detected": movement_detected
+    })
+    
+    return data
 
 # Run simulation when button is clicked
 if st.sidebar.button("Run Simulation"):
