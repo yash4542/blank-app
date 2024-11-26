@@ -1,248 +1,106 @@
-import random
-import math
+import streamlit as st
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
+import random
+import time
 from datetime import datetime, timedelta
-from PIL import Image
 
-# Constants for simulation
-WIDTH = 100  # Width of the grid for heatmap visualization
-HEIGHT = 100  # Height of the grid for heatmap visualization
-SIMULATION_STEPS = 100  # Number of time steps to simulate data
+# Configure Streamlit page
+st.set_page_config(page_title="Customer Behavior Tracking", layout="wide")
 
-# Class to represent a coordinate (x, y) in 2D space
-class Coordinates:
-    def __init__(self, x, y):
-        self.x = x  # X-coordinate
-        self.y = y  # Y-coordinate
+# Define main sections
+st.title("Customer Behavior Tracking")
 
-    def __repr__(self):
-        # Provide a clear string representation for debugging
-        return f"Coordinates(x={self.x}, y={self.y})"
+# Sidebar control for live updates
+st.sidebar.header("Live Update Settings")
+update_interval = st.sidebar.slider("Update Interval (seconds):", min_value=1, max_value=10, value=2)
 
-# Class to simulate a gyroscope sensor
-class Gyroscope:
-    def get_rotation(self):
-        """
-        Simulate the detection of rotation by generating a random value
-        between 0 and 360 degrees.
-        """
-        rotation = random.uniform(0, 360)  # Random rotation angle
-        print(f"[Gyroscope] Rotation detected: {rotation:.2f} degrees")
-        return rotation
-
-    def __repr__(self):
-        return "Gyroscope()"
-
-# Class to simulate a camera for counting foot traffic
-class Camera:
-    def count_foot_traffic(self):
-        """
-        Simulate the detection of foot traffic by generating a random
-        number of people (between 0 and 15).
-        """
-        people_count = random.randint(0, 15)  # Random count of people
-        print(f"[Camera] Detected {people_count} people.")
-        return people_count
-
-    def __repr__(self):
-        return "Camera()"
-
-# Class to simulate an RFID sensor for detecting item pickup
-class RFID:
-    def detect_item_pickup(self):
-        """
-        Simulate item pickup detection. Randomly decide if an item was
-        picked up (True) or not (False).
-        """
-        item_picked = random.choice([True, False])  # Random Boolean
-        if item_picked:
-            print("[RFID] Item pickup detected!")
-        else:
-            print("[RFID] No item pickup detected.")
-        return item_picked
-
-    def __repr__(self):
-        return "RFID()"
-
-# Class to simulate a motion detector
-class MotionDetector:
-    def detect_movement(self):
-        """
-        Simulate motion detection. Randomly decide if movement was
-        detected (True) or not (False).
-        """
-        movement = random.choice([True, False])  # Random Boolean
-        if movement:
-            print("[Motion Detector] Movement detected!")
-        else:
-            print("[Motion Detector] No movement detected.")
-        return movement
-
-    def __repr__(self):
-        return "MotionDetector()"
-
-# Class to create and manage a heatmap for visualizing activity
-class HeatMap:
-    def __init__(self, width, height):
-        """
-        Initialize the heatmap with a grid of specified dimensions,
-        all set to zero.
-        """
-        self.data = [[0 for _ in range(width)] for _ in range(height)]
-
-    def add_data(self, x, y):
-        """
-        Increment the intensity at a specific grid location (x, y).
-        """
-        if 0 <= x < WIDTH and 0 <= y < HEIGHT:
-            self.data[y][x] += 1
-
-    def intensity_to_color(self, intensity):
-        """
-        Map an intensity value to an RGB color for visualization.
-        The scaling ensures the color intensity corresponds to the
-        activity level.
-        """
-        scaled = min(255, intensity * 20)  # Scale the intensity
-        r = scaled  # Red component increases with intensity
-        g = max(0, 255 - scaled)  # Green decreases as intensity increases
-        b = 255 - scaled  # Blue decreases as intensity increases
-        return r, g, b
-
-    def save_to_ppm(self, filename):
-        """
-        Save the heatmap data as a .ppm image file for visualization.
-        """
-        img = Image.new('RGB', (WIDTH, HEIGHT))  # Create a blank image
-        for y in range(HEIGHT):
-            for x in range(WIDTH):
-                r, g, b = self.intensity_to_color(self.data[y][x])
-                img.putpixel((x, y), (r, g, b))  # Assign color to pixel
-        img.save(filename)
-        print(f"[HeatMap] Heat map saved as {filename}")
-
-    def __repr__(self):
-        return f"HeatMap(width={WIDTH}, height={HEIGHT})"
-
-# Class to simulate a sensor for indoor positioning
-class Sensor:
-    def __init__(self, x, y, range_):
-        self.position = Coordinates(x, y)  # Position of the sensor
-        self.range = range_  # Detection range of the sensor
-
-    def get_rssi(self, customer_position):
-        """
-        Calculate the Received Signal Strength Indicator (RSSI) based
-        on the distance between the sensor and the customer's position.
-        """
-        distance = math.sqrt(
-            (customer_position.x - self.position.x) ** 2 +
-            (customer_position.y - self.position.y) ** 2
-        )
-        if distance > self.range:
-            return -100  # Signal strength too weak beyond range
-        else:
-            return -10 * math.log10(distance / self.range)  # RSSI calculation
-
-    def __repr__(self):
-        return f"Sensor(x={self.position.x}, y={self.position.y}, range={self.range})"
-
-# Function to simulate data collection over multiple steps
-def simulate_data(steps):
-    """
-    Simulate data collection by combining readings from various sensors
-    over a specified number of steps.
-    """
-    # Instantiate sensor objects
-    gyroscope = Gyroscope()
-    camera = Camera()
-    rfid = RFID()
-    motion_detector = MotionDetector()
-
-    # Dictionary to store the data collected at each step
+# Placeholder function to simulate real-time sensor data
+def get_sensor_data():
+    """Simulate or fetch live IoT sensor data for customer behavior tracking."""
+    current_time = datetime.now()
     data = {
-        "timestamp": [],
-        "rotation": [],
-        "foot_traffic": [],
-        "item_picked_up": [],
-        "movement_detected": []
+        "timestamp": current_time,
+        "gyroscope_x": random.uniform(-180, 180),  # Simulated gyroscope X-axis rotation
+        "gyroscope_y": random.uniform(-180, 180),  # Simulated gyroscope Y-axis rotation
+        "gyroscope_z": random.uniform(-180, 180),  # Simulated gyroscope Z-axis rotation
+        "rfid_detected": random.choice([0, 1]),    # 0 = no RFID tag, 1 = RFID tag detected
+        "camera_motion": random.choice([0, 1]),   # 0 = no motion, 1 = motion detected by camera
+        "position_x": random.uniform(0, 100),     # Simulated indoor position X
+        "position_y": random.uniform(0, 100),     # Simulated indoor position Y
     }
+    return data
 
-    start_time = datetime.now()  # Starting timestamp
+# Initialize an empty DataFrame for live data
+sensor_data = pd.DataFrame(columns=[ 
+    "timestamp", "gyroscope_x", "gyroscope_y", "gyroscope_z", 
+    "rfid_detected", "camera_motion", "position_x", "position_y"
+])
 
-    for step in range(steps):
-        timestamp = start_time + timedelta(seconds=step)  # Calculate timestamp
+# Start live data updates
+if st.sidebar.button("Start Live Updates"):
+    st.write("Live data updates started...")
+    placeholder = st.empty()  # Placeholder for live data display
+    live_chart_placeholder = st.empty()  # Placeholder for live charts
+    
+    # Loop to simulate live updates
+    try:
+        while True:
+            # Fetch new sensor data
+            new_data = get_sensor_data()
+            # Append to the DataFrame (in place)
+            sensor_data.loc[len(sensor_data)] = new_data
+            # Limit DataFrame to the last 100 rows for performance
+            sensor_data = sensor_data.tail(100)
+            
+            # Display live data in the placeholder
+            placeholder.dataframe(sensor_data)
 
-        # Collect sensor readings
-        rotation = gyroscope.get_rotation()
-        foot_traffic = camera.count_foot_traffic()
-        item_picked_up = rfid.detect_item_pickup()
-        movement_detected = motion_detector.detect_movement()
+            # Update live charts in a container
+            with live_chart_placeholder.container():
+                st.markdown("### Sensor Readings Over Time")
+                
+                # Convert the timestamp to the 'days' format
+                sensor_data["timestamp"] = pd.to_datetime(sensor_data["timestamp"])
+                time_range = sensor_data["timestamp"].max() - timedelta(days=1)  # Get data for the last day
+                filtered_data = sensor_data[sensor_data["timestamp"] > time_range]
+                
+                # Create the plots
+                fig, axs = plt.subplots(4, 1, figsize=(10, 16), sharex=True)
 
-        # Append readings to the dictionary
-        data["timestamp"].append(timestamp)
-        data["rotation"].append(rotation)
-        data["foot_traffic"].append(foot_traffic)
-        data["item_picked_up"].append(item_picked_up)
-        data["movement_detected"].append(movement_detected)
+                # Plot gyroscope X data
+                axs[0].plot(filtered_data["timestamp"], filtered_data["gyroscope_x"], color="blue")
+                axs[0].set_title("Gyroscope X")
+                axs[0].set_ylabel("Degrees")
+                axs[0].tick_params(axis='x', rotation=45)
 
-    # Convert the data dictionary into a DataFrame
-    return pd.DataFrame(data)
+                # Plot gyroscope Y data
+                axs[1].plot(filtered_data["timestamp"], filtered_data["gyroscope_y"], color="orange")
+                axs[1].set_title("Gyroscope Y")
+                axs[1].set_ylabel("Degrees")
+                axs[1].tick_params(axis='x', rotation=45)
 
-# Function to perform exploratory data analysis on collected data
-def perform_eda(df):
-    """
-    Analyze the data through summary statistics, visualizations,
-    and detecting trends.
-    """
-    print("[EDA] Data Summary:")
-    print(df.head())  # Display the first few rows
-    print("\n[EDA] DataFrame Info:")
-    print(df.info())  # Display structure and memory usage
-    print("\n[EDA] Descriptive Statistics:")
-    print(df.describe())  # Display summary statistics
-    print("\n[EDA] Missing values per column:")
-    print(df.isnull().sum())  # Check for missing values
+                # Plot gyroscope Z data
+                axs[2].plot(filtered_data["timestamp"], filtered_data["gyroscope_z"], color="green")
+                axs[2].set_title("Gyroscope Z")
+                axs[2].set_ylabel("Degrees")
+                axs[2].tick_params(axis='x', rotation=45)
 
-    # Visualize data distribution with histograms
-    numeric_cols = df.select_dtypes(include=[np.number]).columns
-    df[numeric_cols].hist(figsize=(12, 8), bins=20)
-    plt.suptitle("Histograms of Numeric Columns")
-    plt.show()
+                # Plot RFID and Camera motion data on the fourth subplot
+                axs[3].step(filtered_data["timestamp"], filtered_data["rfid_detected"], label="RFID Detected", color="purple", where="mid")
+                axs[3].step(filtered_data["timestamp"], filtered_data["camera_motion"], label="Camera Motion", color="red", where="mid")
+                axs[3].set_title("RFID and Camera Motion Detection")
+                axs[3].set_ylabel("Binary Detection")
+                axs[3].set_xlabel("Timestamp")
+                axs[3].legend()
+                axs[3].tick_params(axis='x', rotation=45)
 
-    # Encode True/False columns as integers for correlation analysis
-    df["item_picked_up"] = df["item_picked_up"].astype(int)
-    df["movement_detected"] = df["movement_detected"].astype(int)
+                st.pyplot(fig)
 
-    # Correlation heatmap
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(df.corr(), annot=True, cmap="coolwarm", vmin=-1, vmax=1)
-    plt.title("Correlation Heatmap")
-    plt.show()
+            # Wait for the next update
+            time.sleep(update_interval)
 
-    # Plot time series of rotation and foot traffic
-    plt.figure(figsize=(14, 6))
-    plt.plot(df["timestamp"], df["rotation"], label="Rotation (degrees)", color='blue')
-    plt.plot(df["timestamp"], df["foot_traffic"], label="Foot Traffic (count)", color='orange')
-    plt.xlabel("Timestamp")
-    plt.ylabel("Sensor Data")
-    plt.legend()
-    plt.title("Time Series of Rotation and Foot Traffic")
-    plt.show()
-
-    # Visualize foot traffic during movement
-    movement_data = df[df["movement_detected"] == 1]
-    plt.figure(figsize=(14, 6))
-    plt.plot(movement_data["timestamp"], movement_data["foot_traffic"], label="Foot Traffic (movement detected)", color='red')
-    plt.xlabel("Timestamp")
-    plt.ylabel("Foot Traffic Count")
-    plt.legend()
-    plt.title("Foot Traffic When Movement is Detected")
-    plt.show()
-
-# Main simulation execution
-df = simulate_data(SIMULATION_STEPS)  # Generate simulated data
-perform_eda(df)  # Perform EDA
+    except KeyboardInterrupt:
+        st.write("Live data updates stopped.")
+else:
+    st.write("Click 'Start Live Updates' to begin streaming sensor data.")
