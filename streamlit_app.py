@@ -1,4 +1,5 @@
 
+
 import random
 import math
 import pandas as pd
@@ -142,6 +143,9 @@ def perform_eda(df):
         plt.tight_layout()
         st.pyplot(fig)
 
+    df["item_picked_up"] = df["item_picked_up"].astype(int)
+    df["movement_detected"] = df["movement_detected"].astype(int)
+
     with col2:
         st.write("### Correlation Heatmap")
         fig, ax = plt.subplots(figsize=(10, 8))
@@ -180,15 +184,33 @@ if st.sidebar.button("Run Simulation"):
     data = simulate_data(steps)
     st.success("Simulation completed!")
 
-    st.subheader("Simulated Data")
-    st.dataframe(data)
+    # Display live updates for each sensor
+    st.subheader("Live Sensor Data")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.write("### Live Rotation Data (Gyroscope)")
+        rotation = data["rotation"].iloc[-1]
+        st.write(f"Rotation: {rotation:.2f}°")
+
+    with col2:
+        st.write("### Live Foot Traffic (Camera)")
+        foot_traffic = data["foot_traffic"].iloc[-1]
+        st.write(f"Foot Traffic: {foot_traffic}")
+
+    with col1:
+        st.write("### Live Item Pickup (RFID)")
+        item_picked_up = data["item_picked_up"].iloc[-1]
+        st.write(f"Item Picked Up: {'Yes' if item_picked_up else 'No'}")
+
+    with col2:
+        st.write("### Live Movement Detection (Motion Detector)")
+        movement_detected = data["movement_detected"].iloc[-1]
+        st.write(f"Movement Detected: {'Yes' if movement_detected else 'No'}")
 
     # Perform EDA on simulated data
     st.write("### Performing Exploratory Data Analysis (EDA)...")
-
-    # Create a placeholder for the graph to update in place
-    with st.empty():
-        perform_eda(data)  # Perform EDA on simulated data
+    perform_eda(data)  # Perform EDA on simulated data
 
 else:
     st.write("Set simulation parameters in the sidebar and click 'Run Simulation' to begin.")
