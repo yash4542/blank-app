@@ -1,7 +1,4 @@
 
-YASH RAJ GOPALIYA 22103080
-7:40 PM (0 minutes ago)
-to me
 
 import streamlit as st
 import pandas as pd
