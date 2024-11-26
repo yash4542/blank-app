@@ -2,115 +2,97 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import random
-import time
+from io import BytesIO
 from datetime import datetime, timedelta
+import random
+import math
+import numpy as np
+
+# Import your simulation functions and classes
+# Removed the import for simulation_code as it is now embedded in this script
 
 # Configure Streamlit page
-st.set_page_config(page_title="Customer Behavior Tracking", layout="wide")
+st.set_page_config(page_title="Sensor Simulation", layout="wide")
 
 # Define main sections
-st.title("Customer Behavior Tracking")
+st.title("Sensor Simulation and Analysis")
 
-# Sidebar control for live updates
-st.sidebar.header("Live Update Settings")
-update_interval = st.sidebar.slider("Update Interval (seconds):", min_value=1, max_value=10, value=2)
+# Sidebar for simulation input
+st.sidebar.header("Simulation Settings")
+steps = st.sidebar.number_input("Number of Simulation Steps:", min_value=1, max_value=1000, value=100, step=10)
 
-# Placeholder function to simulate real-time sensor data
-def get_sensor_data():
-    """Simulate or fetch live IoT sensor data for customer behavior tracking."""
-    current_time = datetime.now()
-    data = {
-        "timestamp": current_time,
-        "gyroscope_x": random.uniform(-180, 180),  # Simulated gyroscope X-axis rotation
-        "gyroscope_y": random.uniform(-180, 180),  # Simulated gyroscope Y-axis rotation
-        "gyroscope_z": random.uniform(-180, 180),  # Simulated gyroscope Z-axis rotation
-        "rfid_detected": random.choice([0, 1]),    # 0 = no RFID tag, 1 = RFID tag detected
-        "camera_motion": random.choice([0, 1]),   # 0 = no motion, 1 = motion detected by camera
-        "position_x": random.uniform(0, 100),     # Simulated indoor position X
-        "position_y": random.uniform(0, 100),     # Simulated indoor position Y
-    }
+# Function to simulate sensor data
+def simulate_data(steps):
+    # Create a timestamp column that starts from the current time and increments by 1 minute
+    start_time = datetime.now()
+    timestamps = [start_time + timedelta(minutes=i) for i in range(steps)]
+   
+    # Simulate sensor data (random data for the example)
+    rotation = [random.uniform(0, 360) for _ in range(steps)]  # Rotation in degrees
+    foot_traffic = [random.randint(0, 100) for _ in range(steps)]  # Foot traffic count
+    movement_detected = [random.choice([0, 1]) for _ in range(steps)]  # 0 = no movement, 1 = movement detected
+   
+    # Create a DataFrame
+    data = pd.DataFrame({
+        "timestamp": timestamps,
+        "rotation": rotation,
+        "foot_traffic": foot_traffic,
+        "movement_detected": movement_detected
+    })
+   
     return data
 
-# Initialize an empty DataFrame for live data
-sensor_data = pd.DataFrame(columns=[
-    "timestamp", "gyroscope_x", "gyroscope_y", "gyroscope_z", 
-    "rfid_detected", "camera_motion", "position_x", "position_y"
-])
+# Run simulation when button is clicked
+if st.sidebar.button("Run Simulation"):
+    st.write(f"Running simulation for {steps} steps...")
+    data = simulate_data(steps)  # Run the simulation
+    st.success("Simulation completed!")
 
-# Start live data updates
-if st.sidebar.button("Start Live Updates"):
-    st.write("Live data updates started...")
-    placeholder = st.empty()  # Placeholder for live data display
-    live_chart_placeholder = st.empty()  # Placeholder for live charts
-    
-    # Loop to simulate live updates
-    try:
-        while True:
-            # Fetch new sensor data
-            new_data = get_sensor_data()
-            # Append to the DataFrame (in place)
-            sensor_data.loc[len(sensor_data)] = new_data
-            # Limit DataFrame to the last 100 rows for performance
-            sensor_data = sensor_data.tail(100)
-            
-            # Display live data in the placeholder
-            placeholder.dataframe(sensor_data)
+    # Display raw data
+    st.subheader("Simulated Data")
+    st.dataframe(data)
 
-            # Update live charts in a container
-            with live_chart_placeholder.container():
-                st.markdown("### Sensor Readings Over Time")
-                
-                # Convert the timestamp to the 'days' format
-                sensor_data["timestamp"] = pd.to_datetime(sensor_data["timestamp"])
-                time_range = sensor_data["timestamp"].max() - timedelta(days=1)  # Get data for the last day
-                filtered_data = sensor_data[sensor_data["timestamp"] > time_range]
-                
-                # Create the plots
-                fig, axs = plt.subplots(5, 1, figsize=(12, 20), gridspec_kw={'height_ratios': [1, 1, 1, 1, 2]}, sharex=True)
+    # Exploratory Data Analysis (EDA)
+    st.subheader("Exploratory Data Analysis")
 
-                # Plot gyroscope X data
-                sns.lineplot(x="timestamp", y="gyroscope_x", data=filtered_data, ax=axs[0], color="blue", label="Gyroscope X")
-                axs[0].set_title("Gyroscope X")
-                axs[0].set_ylabel("Degrees")
-                axs[0].legend()
-                
-                # Plot gyroscope Y data
-                sns.lineplot(x="timestamp", y="gyroscope_y", data=filtered_data, ax=axs[1], color="orange", label="Gyroscope Y")
-                axs[1].set_title("Gyroscope Y")
-                axs[1].set_ylabel("Degrees")
-                axs[1].legend()
+    # Data summary
+    st.markdown("### Data Summary")
+    st.write(data.describe())
 
-                # Plot gyroscope Z data
-                sns.lineplot(x="timestamp", y="gyroscope_z", data=filtered_data, ax=axs[2], color="green", label="Gyroscope Z")
-                axs[2].set_title("Gyroscope Z")
-                axs[2].set_ylabel("Degrees")
-                axs[2].legend()
+    # Histograms of numeric columns
+    st.markdown("### Data Distribution")
+    numeric_cols = data.select_dtypes(include=[np.number]).columns
+    fig, ax = plt.subplots(figsize=(12, 6))
+    data[numeric_cols].hist(ax=ax, bins=20, grid=False)
+    st.pyplot(fig)
 
-                # Plot RFID and Camera motion data
-                axs[3].step(filtered_data["timestamp"], filtered_data["rfid_detected"], label="RFID Detected", color="purple", where="mid")
-                axs[3].step(filtered_data["timestamp"], filtered_data["camera_motion"], label="Camera Motion", color="red", where="mid")
-                axs[3].set_title("RFID and Camera Motion Detection")
-                axs[3].set_ylabel("Binary Detection")
-                axs[3].legend()
+    # Correlation heatmap
+    st.markdown("### Correlation Heatmap")
+    fig, ax = plt.subplots(figsize=(10, 8))
+    sns.heatmap(data.corr(), annot=True, cmap="coolwarm", vmin=-1, vmax=1, ax=ax)
+    st.pyplot(fig)
 
-                # Add a heatmap for Position X and Y data
-                axs[4].set_title("Heatmap of Customer Position")
-                heatmap_data = sensor_data[["position_x", "position_y"]]
-                sns.kdeplot(
-                    x=heatmap_data["position_x"], y=heatmap_data["position_y"], 
-                    cmap="viridis", fill=True, thresh=0, levels=100, ax=axs[4]
-                )
-                axs[4].set_xlabel("Position X")
-                axs[4].set_ylabel("Position Y")
+    # Time series plots
+    st.markdown("### Time Series Analysis")
+    fig, ax = plt.subplots(figsize=(14, 6))
+    ax.plot(data["timestamp"], data["rotation"], label="Rotation (degrees)", color='blue')
+    ax.plot(data["timestamp"], data["foot_traffic"], label="Foot Traffic (count)", color='orange')
+    ax.set_xlabel("Timestamp")
+    ax.set_ylabel("Sensor Data")
+    ax.legend()
+    st.pyplot(fig)
 
-                plt.xticks(rotation=45)
-                st.pyplot(fig)
-
-            # Wait for the next update
-            time.sleep(update_interval)
-
-    except KeyboardInterrupt:
-        st.write("Live data updates stopped.")
+    # Movement detected foot traffic
+    st.markdown("### Foot Traffic During Movement")
+    movement_data = data[data["movement_detected"] == 1]
+    if not movement_data.empty:
+        fig, ax = plt.subplots(figsize=(14, 6))
+        ax.plot(movement_data["timestamp"], movement_data["foot_traffic"], label="Foot Traffic (movement detected)", color='red')
+        ax.set_xlabel("Timestamp")
+        ax.set_ylabel("Foot Traffic Count")
+        ax.legend()
+        st.pyplot(fig)
+    else:
+        st.write("No movement detected during the simulation.")
 else:
-    st.write("Click 'Start Live Updates' to begin streaming sensor data.")
+    st.write("Set simulation parameters in the sidebar and click 'Run Simulation' to begin.")
