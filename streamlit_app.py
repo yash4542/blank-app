@@ -1,13 +1,9 @@
-
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-from datetime import datetime
 import random
 import time
+from datetime import datetime
 
 # Configure Streamlit page
 st.set_page_config(page_title="Customer Behavior Tracking", layout="wide")
@@ -46,25 +42,25 @@ if st.sidebar.button("Start Live Updates"):
     st.write("Live data updates started...")
     placeholder = st.empty()  # Placeholder for live data display
     live_chart_placeholder = st.empty()  # Placeholder for live charts
-   
+    
     # Loop to simulate live updates
     try:
         while True:
             # Fetch new sensor data
             new_data = get_sensor_data()
-            # Append to the DataFrame
-            sensor_data = sensor_data.append(new_data, ignore_index=True)
+            # Append to the DataFrame (in place)
+            sensor_data.loc[len(sensor_data)] = new_data
             # Limit DataFrame to the last 100 rows for performance
             sensor_data = sensor_data.tail(100)
-           
-            # Display live data
+            
+            # Display live data in the placeholder
             placeholder.dataframe(sensor_data)
 
-            # Update live charts
+            # Update live charts in a container
             with live_chart_placeholder.container():
                 st.markdown("### Sensor Readings Over Time")
                 fig, axs = plt.subplots(3, 1, figsize=(10, 12), sharex=True)
-               
+                
                 # Plot gyroscope data
                 axs[0].plot(sensor_data["timestamp"], sensor_data["gyroscope_x"], label="Gyroscope X", color="blue")
                 axs[0].plot(sensor_data["timestamp"], sensor_data["gyroscope_y"], label="Gyroscope Y", color="orange")
@@ -83,7 +79,7 @@ if st.sidebar.button("Start Live Updates"):
                 axs[2].set_xlabel("Timestamp")
                 axs[2].set_ylabel("Position (X, Y)")
                 axs[2].legend()
-               
+
                 st.pyplot(fig)
 
             # Wait for the next update
