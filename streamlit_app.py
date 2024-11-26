@@ -32,8 +32,8 @@ def get_sensor_data():
     return data
 
 # Initialize an empty DataFrame for live data
-sensor_data = pd.DataFrame(columns=[ 
-    "timestamp", "gyroscope_x", "gyroscope_y", "gyroscope_z", 
+sensor_data = pd.DataFrame(columns=[
+    "timestamp", "gyroscope_x", "gyroscope_y", "gyroscope_z",
     "rfid_detected", "camera_motion", "position_x", "position_y"
 ])
 
@@ -42,7 +42,7 @@ if st.sidebar.button("Start Live Updates"):
     st.write("Live data updates started...")
     placeholder = st.empty()  # Placeholder for live data display
     live_chart_placeholder = st.empty()  # Placeholder for live charts
-    
+   
     # Loop to simulate live updates
     try:
         while True:
@@ -51,20 +51,20 @@ if st.sidebar.button("Start Live Updates"):
             # Append to the DataFrame (in place)
             sensor_data.loc[len(sensor_data)] = new_data
             # Limit DataFrame to the last 100 rows for performance
-            sensor_data = sensor_data.tail(10)
-            
+            sensor_data = sensor_data.tail(100)
+           
             # Display live data in the placeholder
             placeholder.dataframe(sensor_data)
 
             # Update live charts in a container
             with live_chart_placeholder.container():
                 st.markdown("### Sensor Readings Over Time")
-                
-                # Convert the timestamp to the 'days' format
+               
+                # Convert the timestamp to the 'days' format outside of the loop
                 sensor_data["timestamp"] = pd.to_datetime(sensor_data["timestamp"])
                 time_range = sensor_data["timestamp"].max() - timedelta(days=1)  # Get data for the last day
                 filtered_data = sensor_data[sensor_data["timestamp"] > time_range]
-                
+               
                 # Create the plots
                 fig, axs = plt.subplots(4, 1, figsize=(10, 16), sharex=True)
 
@@ -100,7 +100,8 @@ if st.sidebar.button("Start Live Updates"):
             # Wait for the next update
             time.sleep(update_interval)
 
-    except KeyboardInterrupt:
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
         st.write("Live data updates stopped.")
 else:
     st.write("Click 'Start Live Updates' to begin streaming sensor data.")
