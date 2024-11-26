@@ -51,7 +51,7 @@ if st.sidebar.button("Start Live Updates"):
             # Append to the DataFrame (in place)
             sensor_data.loc[len(sensor_data)] = new_data
             # Limit DataFrame to the last 100 rows for performance
-            sensor_data = sensor_data.tail(100)
+            sensor_data = sensor_data.tail(10)
             
             # Display live data in the placeholder
             placeholder.dataframe(sensor_data)
