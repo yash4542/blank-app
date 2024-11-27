@@ -163,8 +163,8 @@ def perform_eda(df):
     st.pyplot(fig)
 
 # Streamlit app configuration
-st.set_page_config(page_title="Sensor Simulation", layout="wide")
-st.title("Sensor Simulation and Analysis")
+st.set_page_config(page_title="CBT", layout="wide")
+st.title("Customer Behaviour Tracking in Supermarkets")
 
 # Sidebar for simulation input
 st.sidebar.header("Simulation Settings")
